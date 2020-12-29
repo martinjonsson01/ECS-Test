@@ -18,9 +18,9 @@ public class EnemyFighterVisualSingletonAuthoring : MonoBehaviour, IConvertGameO
     public Material material;
     public Mesh mesh;
 
-    public void Convert(Entity entity, EntityManager entityManager, GameObjectConversionSystem conversionSystem)
+    public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
     {
-        entityManager.AddComponentData(entity, new EnemyFighterVisual
+        manager.AddComponentData(entity, new EnemyFighterVisual
         {
             Material = material,
             Mesh = mesh

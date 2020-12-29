@@ -18,9 +18,9 @@ public class LaserBoltVisualSingletonAuthoring : MonoBehaviour, IConvertGameObje
     public Material material;
     public Mesh mesh;
 
-    public void Convert(Entity entity, EntityManager entityManager, GameObjectConversionSystem conversionSystem)
+    public void Convert(Entity entity, EntityManager manager, GameObjectConversionSystem conversionSystem)
     {
-        entityManager.AddComponentData(entity, new LaserBoltVisual
+        manager.AddComponentData(entity, new LaserBoltVisual
         {
             Material = material,
             Mesh = mesh
