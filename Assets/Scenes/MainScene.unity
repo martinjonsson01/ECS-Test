@@ -1153,9 +1153,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4a0eae454c44f04aa234e7525135978, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  amount: 100
-  times: 100
-  interval: 1
+  amount: 1000
+  times: 1
+  interval: 0
   chance: 1
   range: 10
   maxAcceleration: 10
