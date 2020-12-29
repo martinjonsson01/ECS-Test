@@ -1,0 +1,23 @@
+{
+    "name": "TestsPlayMode",
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "references": [
+        "Unity.Burst",
+        "Unity.Entities",
+        "Unity.Entities.Tests",
+        "Game",
+        "Unity.Transforms",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Entities.Hybrid"
+    ],
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Castle.Core.dll",
+        "NSubstitute.dll",
+        "System.Threading.Tasks.Extensions.dll"
+    ]
+}
