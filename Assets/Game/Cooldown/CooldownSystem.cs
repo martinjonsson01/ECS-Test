@@ -2,8 +2,6 @@
 using Unity.Entities;
 
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-// ReSharper disable ForCanBeConvertedToForeach
-
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
 namespace Game.Cooldown
@@ -25,58 +23,100 @@ public class CooldownSystem : SystemBase
                 {
                     if (cooldowns.IsEmpty) return;
 
-                    /***
-                     * I want to apply functional decomposition all this below,
-                     * but Burst won't allow me. If this is fixed in the future,
-                     * please do.
-                     */
-                    var cooldownsWithTypeNone = new NativeList<CooldownElement>(Allocator.Temp);
-                    for (var i = 0; i < cooldowns.Length; i++)
+                    RemoveCooldownsWithTypeNone(cooldowns);
+
+                    cooldowns = DecreaseCooldowns(cooldowns, deltaTime);
+
+                    RemoveCooldownsThatHaveRunOut(cooldowns);
+
+                    static DynamicBuffer<CooldownElement> DecreaseCooldowns(
+                        DynamicBuffer<CooldownElement> cooldowns,
+                        float deltaTime)
                     {
-                        CooldownElement cooldown = cooldowns[i];
-                        if (cooldown.Type != CooldownType.None) continue;
-                        cooldownsWithTypeNone.Add(cooldown);
-                    }
-                    for (var index = 0; index < cooldownsWithTypeNone.Length; index++)
-                    {
-                        CooldownElement toRemove = cooldownsWithTypeNone[index];
-                        int removeIndex = -1;
                         for (var i = 0; i < cooldowns.Length; i++)
                         {
-                            if (!cooldowns.ElementAt(i).Equals(toRemove)) continue;
+                            cooldowns = DecreaseCooldown(cooldowns, deltaTime, i);
+                        }
+                        return cooldowns;
+                    }
+
+                    static DynamicBuffer<CooldownElement> DecreaseCooldown(
+                        DynamicBuffer<CooldownElement> cooldowns,
+                        float deltaTime,
+                        int index)
+                    {
+                        CooldownElement newCooldown = cooldowns[index];
+                        newCooldown.Seconds -= deltaTime;
+                        cooldowns[index] = newCooldown;
+                        return cooldowns;
+                    }
+
+                    static void RemoveCooldownsThatHaveRunOut(DynamicBuffer<CooldownElement> cooldowns)
+                    {
+                        NativeList<CooldownElement> cooldownsExcludingSome = FindCooldownsThatHaveRunOut(cooldowns);
+                        RemoveCooldowns(cooldowns, cooldownsExcludingSome);
+                    }
+
+                    static void RemoveCooldownsWithTypeNone(DynamicBuffer<CooldownElement> cooldowns)
+                    {
+                        NativeList<CooldownElement> cooldownsExcludingSome = FindCooldownsWithTypeNone(cooldowns);
+                        RemoveCooldowns(cooldowns, cooldownsExcludingSome);
+                    }
+
+                    static void RemoveCooldowns(
+                        DynamicBuffer<CooldownElement> elements,
+                        NativeList<CooldownElement> toRemoves)
+                    {
+                        foreach (CooldownElement toRemove in toRemoves)
+                        {
+                            TryRemoveCooldown(elements, toRemove);
+                        }
+                    }
+
+                    static void TryRemoveCooldown(DynamicBuffer<CooldownElement> elements, CooldownElement toRemove)
+                    {
+                        int removeIndex = FindIndexOf(elements, toRemove);
+                        if (removeIndex == -1) return;
+                        elements.RemoveAtSwapBack(removeIndex);
+                    }
+
+                    static NativeList<CooldownElement> FindCooldownsWithTypeNone(
+                        DynamicBuffer<CooldownElement> elements)
+                    {
+                        var cooldownsWithTypeNone = new NativeList<CooldownElement>(Allocator.Temp);
+                        foreach (CooldownElement cooldown in elements)
+                        {
+                            if (cooldown.Type != CooldownType.None) continue;
+                            cooldownsWithTypeNone.Add(cooldown);
+                        }
+
+                        return cooldownsWithTypeNone;
+                    }
+
+                    static NativeList<CooldownElement> FindCooldownsThatHaveRunOut(
+                        DynamicBuffer<CooldownElement> elements)
+                    {
+                        var cooldownsThatHaveRunOut = new NativeList<CooldownElement>(Allocator.Temp);
+                        foreach (CooldownElement cooldown in elements)
+                        {
+                            if (cooldown.Seconds > 0f) continue;
+                            cooldownsThatHaveRunOut.Add(cooldown);
+                        }
+
+                        return cooldownsThatHaveRunOut;
+                    }
+
+                    static int FindIndexOf(DynamicBuffer<CooldownElement> elements, CooldownElement toFind)
+                    {
+                        int removeIndex = -1;
+                        for (var i = 0; i < elements.Length; i++)
+                        {
+                            if (!elements.ElementAt(i).Equals(toFind)) continue;
                             removeIndex = i;
                             break;
                         }
-                        if (removeIndex == -1) break;
-                        cooldowns.RemoveAtSwapBack(removeIndex);
-                    }
 
-                    for (var i = 0; i < cooldowns.Length; i++)
-                    {
-                        CooldownElement newCooldown = cooldowns[i];
-                        newCooldown.Seconds -= deltaTime;
-                        cooldowns[i] = newCooldown;
-                    }
-
-                    var runOutCooldowns = new NativeList<CooldownElement>(Allocator.Temp);
-                    for (var i = 0; i < cooldowns.Length; i++)
-                    {
-                        CooldownElement cooldown = cooldowns[i];
-                        if (cooldown.Seconds > 0f) continue;
-                        runOutCooldowns.Add(cooldown);
-                    }
-                    for (var i = 0; i < runOutCooldowns.Length; i++)
-                    {
-                        CooldownElement toRemove1 = runOutCooldowns[i];
-                        int removeIndex = -1;
-                        for (var j = 0; j < cooldowns.Length; j++)
-                        {
-                            if (!cooldowns.ElementAt(j).Equals(toRemove1)) continue;
-                            removeIndex = j;
-                            break;
-                        }
-                        if (removeIndex == -1) break;
-                        cooldowns.RemoveAtSwapBack(removeIndex);
+                        return removeIndex;
                     }
                 })
                 .WithBurst()
