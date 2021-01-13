@@ -1182,7 +1182,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: a77ec52e65c95b44bb1922fcffe51755, type: 2}
-  mesh: {fileID: 4300002, guid: ff6dc36862fe41641bb21568d92147c9, type: 3}
+  mesh: {fileID: 5060444177187149915, guid: 44ef80c52cd185540bd7e9d6cc15ae18, type: 3}
 --- !u!4 &1231250124
 Transform:
   m_ObjectHideFlags: 0
@@ -1383,7 +1383,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1892479961
 MonoBehaviour:
   m_ObjectHideFlags: 0
