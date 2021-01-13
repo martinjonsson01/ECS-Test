@@ -2,6 +2,7 @@
 using BovineLabs.Event.Systems;
 
 using Game.Life;
+using Game.Movement;
 using Game.Weapon;
 using Game.Weapon.Projectile;
 
@@ -9,12 +10,9 @@ using NUnit.Framework;
 
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
 
 using static NUnit.Framework.Assert;
-
-using Velocity = Game.Movement.Velocity;
 
 namespace Tests.Weapon.Projectile
 {

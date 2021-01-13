@@ -14,7 +14,9 @@
         "Unity.Mathematics.Extensions",
         "Unity.Entities.Hybrid",
         "Unity.Physics",
-        "BovineLabs.Event"
+        "BovineLabs.Event",
+        "Unity.InputSystem",
+        "Unity.InputSystem.TestFramework"
     ],
     "includePlatforms": [
         "Editor"
