@@ -1,20 +1,13 @@
-﻿using System;
-
-using BovineLabs.Event.Containers;
-using BovineLabs.Event.Systems;
-
-using Game.Adapter;
+﻿using Game.Movement;
 
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Transforms;
 
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 
 using IPlayerActions = Game.Player.Controls.IPlayerActions;
 using Ray = UnityEngine.Ray;
@@ -22,28 +15,30 @@ using RaycastHit = Unity.Physics.RaycastHit;
 
 namespace Game.Player
 {
-[RequireComponent(typeof(SmoothRotator))]
 public class PlayerInputHandler : MonoBehaviour, IPlayerActions
 {
     public InputActionAsset Asset { get; private set; }
-    public Camera PlayerCamera;
+    public Camera playerCamera;
+
+    [SerializeField] private float turningRate = 1f;
 
     private const float RayDistance = 1000f;
-    private const int MoveRayLayer = 2;
 
     private Controls _controls;
-    private SmoothRotator _rotator;
 
     private EntityManager _entityManager;
     private BuildPhysicsWorld _buildPhysicsWorld;
+    private EntityQuery _playerQuery;
 
     public void OnEnable()
     {
         SetUpControls();
-        _rotator = GetComponent<SmoothRotator>();
 
         _buildPhysicsWorld = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<BuildPhysicsWorld>();
         _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        _playerQuery = _entityManager.CreateEntityQuery(
+            typeof(PlayerTag),
+            typeof(Translation));
     }
 
     public void OnDisable()
@@ -61,21 +56,35 @@ public class PlayerInputHandler : MonoBehaviour, IPlayerActions
         Entity firstHitEntity = GetEntityAtPointer(mousePos);
         if (firstHitEntity == default) return;
 
-        _rotator.desiredRotation = CalculateDirectionToTarget(firstHitEntity);
+        Entity player = GetPlayer();
+        Quaternion directionToTarget = CalculateDirectionToTarget(firstHitEntity, player);
+        var desiredRotation = new DesiredRotation
+        {
+            Value = directionToTarget,
+            TurningRate = turningRate
+        };
+        _entityManager.AddComponentData(player, desiredRotation);
     }
 
-    private Quaternion CalculateDirectionToTarget(Entity target)
+    private Entity GetPlayer()
     {
+        using NativeArray<Entity> players = _playerQuery.ToEntityArray(Allocator.Temp);
+        return players.Length > 0 ? players[0] : default;
+    }
+
+    private Quaternion CalculateDirectionToTarget(Entity target, Entity player)
+    {
+        var playerTransform = _entityManager.GetComponentData<LocalToWorld>(player);
         Vector3 targetPosition = _entityManager.GetComponentData<Translation>(target).Value;
-        Vector3 toTarget = targetPosition - transform.position;
-        Quaternion lookingAtTarget = Quaternion.LookRotation(toTarget, transform.up);
+        Vector3 toTarget = targetPosition - (Vector3) playerTransform.Position;
+        Quaternion lookingAtTarget = Quaternion.LookRotation(toTarget, playerTransform.Up);
         return lookingAtTarget;
     }
 
     private Entity GetEntityAtPointer(Vector2 vector2)
     {
         var raycastHits = new NativeList<RaycastHit>(Allocator.Temp);
-        Ray cameraRay = PlayerCamera.ScreenPointToRay(vector2);
+        Ray cameraRay = playerCamera.ScreenPointToRay(vector2);
         RaycastInput raycastInput = CreateRaycast(cameraRay);
         CollisionWorld collisionWorld = _buildPhysicsWorld.PhysicsWorld.CollisionWorld;
         if (!collisionWorld.CastRay(raycastInput, ref raycastHits)) return default;
@@ -90,7 +99,7 @@ public class PlayerInputHandler : MonoBehaviour, IPlayerActions
         {
             Start = fromRay.origin,
             End = fromRay.origin + fromRay.direction * RayDistance,
-            Filter = LayerToFilter(MoveRayLayer)
+            Filter = RaycastHelper.LayerToFilter(RaycastHelper.PlayerMoveInputRayLayer)
         };
         return raycastInput;
     }
@@ -104,21 +113,6 @@ public class PlayerInputHandler : MonoBehaviour, IPlayerActions
         }
         Asset = _controls.asset;
         _controls.Player.Enable();
-    }
-
-    private static CollisionFilter LayerToFilter(int layer)
-    {
-        if (layer == -1) return CollisionFilter.Zero;
-
-        var mask = new BitField32();
-        mask.SetBits(layer, true);
-
-        var filter = new CollisionFilter()
-        {
-            BelongsTo = mask.Value,
-            CollidesWith = mask.Value
-        };
-        return filter;
     }
 }
 }

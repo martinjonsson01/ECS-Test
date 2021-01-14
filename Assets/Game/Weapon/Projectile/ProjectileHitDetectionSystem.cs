@@ -78,12 +78,9 @@ public class ProjectileHitDetectionSystem : SystemBase
         {
             Start = translation.Value,
             End = nextFramePosition,
-            Filter =
-                new CollisionFilter
-                {
-                    BelongsTo = 1,
-                    CollidesWith = 2
-                }
+            Filter = RaycastHelper.LayerToFilter(
+                RaycastHelper.ProjectileLayer,
+                RaycastHelper.ProjectileCollidableLayer)
         };
         return collisionWorld.CastRay(raycastInput, ref raycastHits);
     }
