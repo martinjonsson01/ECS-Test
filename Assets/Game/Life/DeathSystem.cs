@@ -1,8 +1,15 @@
-﻿using Unity.Entities;
+﻿using Game.Enemy;
+using Game.Weapon.Projectile;
+
+using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 
 namespace Game.Life
 {
+[UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateAfter(typeof(ProjectileHitDamageSystem))]
+[UpdateAfter(typeof(TargetPlayerSystem))]
 public class DeathSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem _endSimEcbSystem;
@@ -16,24 +23,54 @@ public class DeathSystem : SystemBase
     {
         EntityCommandBuffer.ParallelWriter ecb = _endSimEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
-        JobHandle targetHandle =
+        var killedEntities = new NativeList<Entity>(Allocator.TempJob);
+
+        JobHandle killHandle =
             Entities
-                .WithName(nameof(DeathSystem))
+                .WithName("Kill_Job")
                 .ForEach((
                     Entity entity,
                     int entityInQueryIndex,
                     in Health health) =>
                 {
-                    if (health.Value > 0f) return;
+                    if (EntityShouldLive(health)) return;
 
                     ecb.DestroyEntity(entityInQueryIndex, entity);
+                    killedEntities.Add(entity);
                 })
-                .WithoutBurst()
+                .WithBurst()
                 .Schedule(Dependency);
 
-        _endSimEcbSystem.AddJobHandleForProducer(targetHandle);
+        JobHandle targetDereferenceHandle =
+            Entities
+                .WithName("Target_Dereference_Job")
+                .ForEach((
+                    Entity entity,
+                    int entityInQueryIndex,
+                    in Target target) =>
+                {
+                    // ReSharper disable once ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
+                    foreach (Entity killedEntity in killedEntities)
+                    {
+                        if (target.Entity.Equals(killedEntity))
+                        {
+                            ecb.RemoveComponent<Target>(entityInQueryIndex, entity);
+                        }
+                    }
+                })
+                .WithDisposeOnCompletion(killedEntities)
+                .WithBurst()
+                .Schedule(killHandle);
 
-        Dependency = targetHandle;
+        _endSimEcbSystem.AddJobHandleForProducer(killHandle);
+        _endSimEcbSystem.AddJobHandleForProducer(targetDereferenceHandle);
+
+        Dependency = targetDereferenceHandle;
+    }
+
+    private static bool EntityShouldLive(Health health)
+    {
+        return health.Value > 0f;
     }
 }
 }

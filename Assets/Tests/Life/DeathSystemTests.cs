@@ -1,4 +1,5 @@
-﻿using Game.Life;
+﻿using Game.Enemy;
+using Game.Life;
 
 using NUnit.Framework;
 
@@ -46,6 +47,26 @@ public class DeathSystemTests : SystemTestBase<DeathSystem>
         World.Update();
 
         IsFalse(m_Manager.Exists(_entity));
+    }
+
+    [Test]
+    public void When_EntityIsRemoved_AllTargetComponentsReferencingItAreAlsoRemoved()
+    {
+        var target = new Target { Entity = _entity };
+        Entity targetingEntity1 = m_Manager.CreateEntity(typeof(Target));
+        m_Manager.SetComponentData(targetingEntity1, target);
+        Entity targetingEntity2 = m_Manager.CreateEntity(typeof(Target));
+        m_Manager.SetComponentData(targetingEntity2, target);
+        Entity targetingEntity3 = m_Manager.CreateEntity(typeof(Target));
+        m_Manager.SetComponentData(targetingEntity3, target);
+        m_Manager.SetComponentData(_entity, new Health { Value = 0f });
+
+        World.Update();
+
+        IsFalse(m_Manager.Exists(_entity));
+        IsFalse(m_Manager.HasComponent<Target>(targetingEntity1));
+        IsFalse(m_Manager.HasComponent<Target>(targetingEntity2));
+        IsFalse(m_Manager.HasComponent<Target>(targetingEntity3));
     }
 }
 }

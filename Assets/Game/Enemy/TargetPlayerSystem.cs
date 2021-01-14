@@ -6,6 +6,8 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
+using UnityEngine;
+
 namespace Game.Enemy
 {
 [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -25,7 +27,7 @@ public class TargetPlayerSystem : SystemBase
     protected override void OnUpdate()
     {
         if (_playerQuery.IsEmpty) return;
-
+        
         if (_player == default)
         {
             using NativeArray<Entity> players = _playerQuery.ToEntityArray(Allocator.Temp);
@@ -37,6 +39,8 @@ public class TargetPlayerSystem : SystemBase
 
         EntityCommandBuffer.ParallelWriter ecb = _endSimEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
+        Entity player = _player;
+
         JobHandle targetHandle =
             Entities
                 .WithName(nameof(TargetPlayerSystem))
@@ -45,7 +49,12 @@ public class TargetPlayerSystem : SystemBase
                     Entity entity,
                     int entityInQueryIndex) =>
                 {
-                    var followTarget = new Target { Position = playerPos, StopDistanceSq = 10f * 10f };
+                    var followTarget = new Target
+                    {
+                        Entity = player,
+                        Position = playerPos,
+                        StopDistanceSq = 10f * 10f
+                    };
                     ecb.AddComponent(entityInQueryIndex, entity, followTarget);
                 })
                 .WithBurst()

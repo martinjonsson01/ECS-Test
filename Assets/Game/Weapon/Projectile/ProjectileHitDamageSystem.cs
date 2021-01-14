@@ -9,6 +9,7 @@ using Unity.Entities;
 namespace Game.Weapon.Projectile
 {
 [UpdateInGroup(typeof(SimulationSystemGroup))]
+[UpdateAfter(typeof(ProjectileHitDetectionSystem))]
 public class ProjectileHitDamageSystem : SystemBase
 {
     private EntityQuery _projectileTagGroup;
