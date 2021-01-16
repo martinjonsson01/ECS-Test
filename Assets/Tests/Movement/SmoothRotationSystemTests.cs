@@ -48,5 +48,20 @@ public class SmoothRotationSystemTests : SystemTestBase<SmoothRotationSystem>
         quaternion rotationAfter = m_Manager.GetComponentData<Rotation>(_entity).Value;
         Assert.That(rotationAfter, Is.Not.EqualTo(rotationBefore));
     }
+
+    [Test]
+    public void When_EntityIsRotatedToDesiredRotation_DesiredRotationIsRemoved()
+    {
+        quaternion rotationBefore = m_Manager.GetComponentData<Rotation>(_entity).Value;
+        var desiredRotation = new DesiredRotation
+        {
+            Value = rotationBefore
+        };
+        m_Manager.SetComponentData(_entity, desiredRotation);
+
+        World.Update();
+
+        Assert.IsFalse(m_Manager.HasComponent<DesiredRotation>(_entity));
+    }
 }
 }
