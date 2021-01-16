@@ -32,12 +32,9 @@ public class EntityComponentConfigurator
         foreach (Entity entity in entities) ApplyComponentData(entity);
     }
 
-    public bool AddComponentDataFunction([NotNull] Func<IRandom, IComponentData> function)
+    public void AddComponentDataFunction([NotNull] Func<IRandom, IComponentData> function)
     {
-        if (_componentDataFunctions is null)
-            return false;
         _componentDataFunctions.Add(function);
-        return true;
     }
 
 #endregion

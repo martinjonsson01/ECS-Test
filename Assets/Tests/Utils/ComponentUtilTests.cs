@@ -15,7 +15,6 @@ public class ComponentUtilTests
         public quaternion Value2;
         public float Value3;
         public int Value4;
-        public string Value5;
     }
 
     [Test]
@@ -26,15 +25,14 @@ public class ComponentUtilTests
             Value1 = new float3(1f, 2f, 3f),
             Value2 = new quaternion(1f, 2f, 3f, 4f),
             Value3 = 11f,
-            Value4 = 1463,
-            Value5 = "testing_1456"
+            Value4 = 1463
         };
 
         var toString = ComponentUtil.ToString(component);
 
 
         var expected =
-            $"TestComponent(Value1={component.Value1}, Value2={component.Value2}, Value3={component.Value3}, Value4={component.Value4}, Value5={component.Value5})";
+            $"TestComponent(Value1={component.Value1}, Value2={component.Value2}, Value3={component.Value3}, Value4={component.Value4})";
         Assert.That(toString, Is.EqualTo(expected));
     }
 }
