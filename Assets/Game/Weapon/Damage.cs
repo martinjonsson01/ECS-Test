@@ -6,10 +6,5 @@ namespace Game.Weapon
 public struct Damage : IComponentData
 {
     public float Value;
-
-    public override string ToString()
-    {
-        return $"{nameof(Damage)}({Value.ToString()})";
-    }
 }
 }

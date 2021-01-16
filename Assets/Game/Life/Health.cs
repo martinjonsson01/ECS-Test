@@ -6,8 +6,8 @@ namespace Game.Life
 public struct Health : IComponentData
 {
     /**
-         * Hitpoints representing how much damage can be taken.
-         */
+     * Hitpoints representing how much damage can be taken.
+     */
     public float Value;
 }
 }

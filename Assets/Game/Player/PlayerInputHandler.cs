@@ -1,4 +1,5 @@
 ﻿using Game.Movement;
+using Game.Utils;
 
 using Unity.Collections;
 using Unity.Entities;
@@ -99,7 +100,7 @@ public class PlayerInputHandler : MonoBehaviour, IPlayerActions
         {
             Start = fromRay.origin,
             End = fromRay.origin + fromRay.direction * RayDistance,
-            Filter = RaycastHelper.LayerToFilter(RaycastHelper.PlayerMoveInputRayLayer)
+            Filter = RaycastUtil.LayerToFilter(RaycastUtil.PlayerMoveInputRayLayer)
         };
         return raycastInput;
     }

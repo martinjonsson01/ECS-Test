@@ -15,10 +15,5 @@ public struct DesiredRotation : IComponentData
     public float SecondsToTurn;
 
     public float SecondsPassed;
-
-    public override string ToString()
-    {
-        return $"{nameof(DesiredRotation)}(Value={Value.ToString()}, TurningRate={TurningRate}, PreviousValue={PreviousValue.ToString()}, SecondsToTurn={SecondsToTurn}, SecondsPassed={SecondsPassed})";
-    }
 }
 }

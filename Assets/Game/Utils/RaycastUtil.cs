@@ -1,9 +1,9 @@
 ﻿using Unity.Collections;
 using Unity.Physics;
 
-namespace Game
+namespace Game.Utils
 {
-public static class RaycastHelper
+public static class RaycastUtil
 {
     public const int ProjectileCollidableLayer = 6;
     public const int ProjectileLayer = 7;

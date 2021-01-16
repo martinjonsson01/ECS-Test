@@ -1,6 +1,7 @@
 ﻿using Game;
 using Game.Movement;
 using Game.Player;
+using Game.Utils;
 
 using NUnit.Framework;
 
@@ -56,6 +57,14 @@ public class PlayerInputHandlerTests : InputTestFixture
         _mouse = InputSystem.AddDevice<Mouse>();
     }
 
+    [TearDown]
+    public override void TearDown()
+    {
+        base.TearDown();
+
+        _handler.OnDisable();
+    }
+
     private void CreateAndSetUpPhysicsSystems()
     {
         _world.GetOrCreateSystem<BuildPhysicsWorld>().Update();
@@ -63,7 +72,7 @@ public class PlayerInputHandlerTests : InputTestFixture
         _world.GetOrCreateSystem<StepPhysicsWorld>();
     }
 
-    private Entity CreateMoveTargetEntity(float3 worldPos)
+    private void CreateMoveTargetEntity(float3 worldPos)
     {
         Entity moveTargetEntity = _manager.CreateEntity(typeof(Translation),
             typeof(Rotation),
@@ -76,7 +85,7 @@ public class PlayerInputHandlerTests : InputTestFixture
                 Center = float3.zero,
                 Radius = 1f
             },
-            RaycastHelper.LayerToFilter(RaycastHelper.PlayerMoveInputRayLayer),
+            RaycastUtil.LayerToFilter(RaycastUtil.PlayerMoveInputRayLayer),
             new Material
             {
                 CollisionResponse = CollisionResponsePolicy.None
@@ -84,7 +93,6 @@ public class PlayerInputHandlerTests : InputTestFixture
         _manager.SetComponentData(moveTargetEntity, new PhysicsCollider { Value = collider });
         _moveTargetScreenPos = _playerCamera.WorldToScreenPoint(worldPos);
         _manager.SetComponentData(moveTargetEntity, new Translation { Value = worldPos });
-        return moveTargetEntity;
     }
 
     private static Camera SetUpPlayerCamera(Entity player, EntityManager manager)
@@ -106,7 +114,7 @@ public class PlayerInputHandlerTests : InputTestFixture
         Assert.IsFalse(_manager.HasComponent<DesiredRotation>(_player));
     }
 
-    [Test, Ignore("Sometimes fails, sometimes doesn't. Don't know why.")]
+    [Test]
     public void When_MoveInputIsGivenToTarget_PlayerWantsToRotateToTarget()
     {
         InputActionAsset input = _handler.Asset;
