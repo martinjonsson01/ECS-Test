@@ -6,8 +6,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-using UnityEngine;
-
 namespace Game.Enemy
 {
 [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -27,7 +25,7 @@ public class TargetPlayerSystem : SystemBase
     protected override void OnUpdate()
     {
         if (_playerQuery.IsEmpty) return;
-        
+
         if (_player == default)
         {
             using NativeArray<Entity> players = _playerQuery.ToEntityArray(Allocator.Temp);

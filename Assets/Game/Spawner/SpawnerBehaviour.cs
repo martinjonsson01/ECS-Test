@@ -6,6 +6,7 @@ using Game.Cooldown;
 using Game.Enemy;
 using Game.Graphics;
 using Game.Life;
+using Game.Life.Explosion;
 using Game.Movement;
 using Game.Weapon;
 
@@ -83,7 +84,8 @@ public class SpawnerBehaviour : MonoBehaviour
             /**/
             typeof(Health),
             typeof(CooldownElement),
-            typeof(NeedsVisualTag)
+            typeof(NeedsVisualTag),
+            typeof(ExplodesOnDeath)
         );
         var componentDataFunctions = new List<Func<IRandom, IComponentData>>
         {

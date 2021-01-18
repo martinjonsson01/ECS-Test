@@ -16,7 +16,8 @@
         "Unity.Physics",
         "BovineLabs.Event",
         "Unity.InputSystem",
-        "Unity.InputSystem.TestFramework"
+        "Unity.InputSystem.TestFramework",
+        "Unity.Rendering.Hybrid"
     ],
     "includePlatforms": [
         "Editor"
