@@ -1,5 +1,4 @@
 ﻿using Game.Player;
-using Game.Utils;
 
 using NUnit.Framework;
 

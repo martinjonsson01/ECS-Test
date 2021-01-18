@@ -1,5 +1,4 @@
-﻿using Game;
-using Game.Movement;
+﻿using Game.Movement;
 using Game.Player;
 using Game.Utils;
 

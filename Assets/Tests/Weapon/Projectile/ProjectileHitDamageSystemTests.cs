@@ -16,7 +16,8 @@ using static NUnit.Framework.Assert;
 
 namespace Tests.Weapon.Projectile
 {
-public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamageSystem>
+public class ProjectileHitDamageSystemTests :
+    EventSystemTestBase<ProjectileHitDamageSystem, ProjectileHitEvent>
 {
     private Entity _target;
     private Entity _projectile;
@@ -56,8 +57,7 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
     public void When_ProjectileHitEventExists_TargetTakesSpecifiedDamage()
     {
         float previousHealth = m_Manager.GetComponentData<Health>(_target).Value;
-        var eventSystem = World.GetExistingSystem<EventSystem>();
-        NativeEventStream.ThreadWriter writer = eventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
         const float damage = 4.5f;
         var hitEvent = new ProjectileHitEvent
         {
@@ -76,8 +76,7 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
     [Test]
     public void When_ProjectileHitEventHasProjectile_ProjectileIsDestroyed()
     {
-        var eventSystem = World.GetExistingSystem<EventSystem>();
-        NativeEventStream.ThreadWriter writer = eventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
         var hitEvent = new ProjectileHitEvent
         {
             ProjectileEntity = _projectile,
@@ -95,8 +94,7 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
     [Test]
     public void When_ProjectileHitEventHasHitEntityWithoutHealth_ProjectileIsNotDestroyed()
     {
-        var eventSystem = World.GetExistingSystem<EventSystem>();
-        NativeEventStream.ThreadWriter writer = eventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
         var hitEvent = new ProjectileHitEvent
         {
             ProjectileEntity = _projectile,
