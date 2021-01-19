@@ -1,6 +1,8 @@
 ﻿using BovineLabs.Event.Containers;
 using BovineLabs.Event.Systems;
 
+using Game.Utils;
+
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -78,12 +80,9 @@ public class ProjectileHitDetectionSystem : SystemBase
         {
             Start = translation.Value,
             End = nextFramePosition,
-            Filter =
-                new CollisionFilter
-                {
-                    BelongsTo = 1,
-                    CollidesWith = 2
-                }
+            Filter = RaycastUtil.LayerToFilter(
+                RaycastUtil.ProjectileLayer,
+                RaycastUtil.ProjectileCollidableLayer)
         };
         return collisionWorld.CastRay(raycastInput, ref raycastHits);
     }

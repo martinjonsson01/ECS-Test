@@ -1,8 +1,10 @@
-﻿using Unity.Entities;
+﻿using Game.Player;
+
+using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-
-using UnityEngine;
+using Unity.Transforms;
 
 namespace Game.Enemy
 {
@@ -10,21 +12,32 @@ namespace Game.Enemy
 public class TargetPlayerSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem _endSimEcbSystem;
+    private Entity _player;
+    private EntityQuery _playerQuery;
 
     protected override void OnCreate()
     {
         _endSimEcbSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        _playerQuery = EntityManager.CreateEntityQuery(
+            typeof(PlayerTag), typeof(Translation));
     }
 
     protected override void OnUpdate()
     {
-        float3? playerPos = null;
-        if (Camera.main != null)
+        if (_playerQuery.IsEmpty) return;
+
+        if (_player == default)
         {
-            playerPos = Camera.main.transform.position;
+            using NativeArray<Entity> players = _playerQuery.ToEntityArray(Allocator.Temp);
+            if (players.Length <= 0) return;
+            _player = players[0];
         }
 
+        float3 playerPos = EntityManager.GetComponentData<Translation>(_player).Value;
+
         EntityCommandBuffer.ParallelWriter ecb = _endSimEcbSystem.CreateCommandBuffer().AsParallelWriter();
+
+        Entity player = _player;
 
         JobHandle targetHandle =
             Entities
@@ -34,9 +47,12 @@ public class TargetPlayerSystem : SystemBase
                     Entity entity,
                     int entityInQueryIndex) =>
                 {
-                    if (!playerPos.HasValue) return;
-
-                    var followTarget = new Target { Position = playerPos.Value, StopDistanceSq = 10f * 10f};
+                    var followTarget = new Target
+                    {
+                        Entity = player,
+                        Position = playerPos,
+                        StopDistanceSq = 10f * 10f
+                    };
                     ecb.AddComponent(entityInQueryIndex, entity, followTarget);
                 })
                 .WithBurst()

@@ -1,7 +1,5 @@
 ﻿using Game.Adapter;
 
-using NSubstitute;
-
 using NUnit.Framework;
 
 using Unity.Collections;

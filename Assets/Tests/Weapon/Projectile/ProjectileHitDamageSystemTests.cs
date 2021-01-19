@@ -1,7 +1,7 @@
 ﻿using BovineLabs.Event.Containers;
-using BovineLabs.Event.Systems;
 
 using Game.Life;
+using Game.Movement;
 using Game.Weapon;
 using Game.Weapon.Projectile;
 
@@ -9,19 +9,18 @@ using NUnit.Framework;
 
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 using Unity.Transforms;
 
 using static NUnit.Framework.Assert;
 
-using Velocity = Game.Movement.Velocity;
-
 namespace Tests.Weapon.Projectile
 {
-public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamageSystem>
+public class ProjectileHitDamageSystemTests :
+    EventSystemTestBase<ProjectileHitDamageSystem, ProjectileHitEvent>
 {
     private Entity _target;
     private Entity _projectile;
+    private Entity _targetWithoutHealth;
 
     [SetUp]
     public override void Setup()
@@ -35,7 +34,10 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
         _target = m_Manager.CreateEntity(
             typeof(Translation),
             typeof(Health));
+        _targetWithoutHealth = m_Manager.CreateEntity(
+            typeof(Translation));
         m_Manager.AddComponentData(_target, new Translation { Value = float3.zero });
+        m_Manager.AddComponentData(_targetWithoutHealth, new Translation { Value = float3.zero });
         m_Manager.AddComponentData(_target, new Health { Value = 10f });
         m_Manager.AddComponentData(_projectile, new Translation { Value = new float3(5f, 0f, 0f) });
     }
@@ -54,8 +56,7 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
     public void When_ProjectileHitEventExists_TargetTakesSpecifiedDamage()
     {
         float previousHealth = m_Manager.GetComponentData<Health>(_target).Value;
-        var eventSystem = World.GetExistingSystem<EventSystem>();
-        NativeEventStream.ThreadWriter writer = eventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = CreateEventWriter();
         const float damage = 4.5f;
         var hitEvent = new ProjectileHitEvent
         {
@@ -74,8 +75,7 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
     [Test]
     public void When_ProjectileHitEventHasProjectile_ProjectileIsDestroyed()
     {
-        var eventSystem = World.GetExistingSystem<EventSystem>();
-        NativeEventStream.ThreadWriter writer = eventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = CreateEventWriter();
         var hitEvent = new ProjectileHitEvent
         {
             ProjectileEntity = _projectile,
@@ -88,6 +88,24 @@ public class ProjectileHitDamageSystemTests : SystemTestBase<ProjectileHitDamage
         World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().Update();
 
         IsFalse(m_Manager.Exists(_projectile));
+    }
+
+    [Test]
+    public void When_ProjectileHitEventHasHitEntityWithoutHealth_ProjectileIsNotDestroyed()
+    {
+        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
+        var hitEvent = new ProjectileHitEvent
+        {
+            ProjectileEntity = _projectile,
+            HitEntity = _targetWithoutHealth,
+            Damage = 1f
+        };
+        writer.Write(hitEvent);
+
+        World.GetExistingSystem<ProjectileHitDamageSystem>().Update();
+        World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>().Update();
+
+        IsTrue(m_Manager.Exists(_projectile));
     }
 }
 }

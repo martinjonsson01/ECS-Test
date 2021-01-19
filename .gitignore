@@ -2,6 +2,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/unity,intellij,visualstudio,vscode
 # Edit at https://www.toptal.com/developers/gitignore?templates=unity,intellij,visualstudio,vscode
 
+# Unity Input system auto-generated files
+/Assets/Game/Player/Controls.cs
+
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
@@ -367,6 +370,7 @@ PublishScripts/
 *.snupkg
 # The packages folder can be ignored because of Package Restore
 **/[Pp]ackages/*
+!**/[Pp]ackages/manifest.json
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
@@ -374,6 +378,7 @@ PublishScripts/
 # NuGet v3's project.json files produces more ignorable files
 *.nuget.props
 *.nuget.targets
+# except manifest.json, which defines what packages this project uses
 
 # Microsoft Azure Build Output
 csx/

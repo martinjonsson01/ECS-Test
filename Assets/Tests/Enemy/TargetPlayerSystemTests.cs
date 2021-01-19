@@ -1,9 +1,11 @@
 ﻿using Game.Enemy;
+using Game.Player;
 
 using NUnit.Framework;
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 
 using UnityEngine;
 
@@ -14,11 +16,14 @@ namespace Tests.Enemy
 public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
 {
     private Entity _entity;
+    private Entity _player;
 
     [SetUp]
     public override void Setup()
     {
         base.Setup();
+        _player = m_Manager.CreateEntity(
+            typeof(PlayerTag), typeof(Translation));
         _entity = m_Manager.CreateEntity(
             typeof(TargetsPlayerTag));
     }
@@ -26,13 +31,11 @@ public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
     [Test]
     public void When_ThereIsNoPlayer_DontTargetAnything()
     {
-        GameObject mainCamera = GameObject.FindWithTag("MainCamera");
-        mainCamera.SetActive(false);
+        m_Manager.DestroyEntity(_player);
 
         World.Update();
 
         IsFalse(m_Manager.HasComponent<Target>(_entity));
-        mainCamera.SetActive(true);
     }
 
     [Test]
@@ -48,8 +51,7 @@ public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
     [Test]
     public void When_ThereIsAPlayer_FollowTargetPositionMatchesPlayer()
     {
-        IsNotNull(Camera.main);
-        float3 playerPos = Camera.main.transform.position;
+        float3 playerPos = m_Manager.GetComponentData<Translation>(_player).Value;
 
         World.Update();
 
@@ -60,18 +62,16 @@ public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
     [Test]
     public void When_ThereIsAPlayer_AndPlayerMoves_FollowTarget_IsUpdated()
     {
-        IsNotNull(Camera.main);
-        Transform playerTransform = Camera.main.transform;
-        float3 playerPos = playerTransform.position;
+        float3 playerPos = m_Manager.GetComponentData<Translation>(_player).Value;
 
         World.Update();
 
         float3 targetPos = m_Manager.GetComponentData<Target>(_entity).Position;
         AreEqual(playerPos, targetPos);
 
-        playerTransform.Translate(10f, 0f, 0f);
+        m_Manager.SetComponentData(_player, new Translation { Value = new float3(10f, 0f, 0f) });
 
-        playerPos = playerTransform.position;
+        playerPos = m_Manager.GetComponentData<Translation>(_player).Value;
 
         World.Update();
 

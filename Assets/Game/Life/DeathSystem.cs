@@ -1,39 +1,80 @@
-﻿using Unity.Entities;
+﻿using BovineLabs.Event.Containers;
+using BovineLabs.Event.Systems;
+
+using Game.Enemy;
+using Game.Weapon.Projectile;
+
+using Unity.Entities;
 using Unity.Jobs;
 
 namespace Game.Life
 {
+[UpdateInGroup(typeof(SimulationSystemGroup))]
 public class DeathSystem : SystemBase
 {
-    private EndSimulationEntityCommandBufferSystem _endSimEcbSystem;
+    private EventSystem _eventSystem;
 
     protected override void OnCreate()
     {
-        _endSimEcbSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
+        _eventSystem = World.GetExistingSystem<EventSystem>();
     }
+
+    private EntityQuery _killQuery;
 
     protected override void OnUpdate()
     {
-        EntityCommandBuffer.ParallelWriter ecb = _endSimEcbSystem.CreateCommandBuffer().AsParallelWriter();
+        NativeEventStream.IndexWriter deathWriter =
+            _eventSystem.CreateEventWriter<DeathEvent>(_killQuery.CalculateEntityCount());
 
-        JobHandle targetHandle =
+        Dependency = KillEntities(deathWriter);
+    }
+
+    private JobHandle KillEntities(NativeEventStream.IndexWriter deathWriter)
+    {
+        return ScheduleKillEntitiesJob(deathWriter);
+    }
+
+    private JobHandle ScheduleKillEntitiesJob(NativeEventStream.IndexWriter deathWriter)
+    {
+        JobHandle killHandle =
             Entities
-                .WithName(nameof(DeathSystem))
+                .WithName("Kill_Job")
                 .ForEach((
                     Entity entity,
                     int entityInQueryIndex,
                     in Health health) =>
                 {
-                    if (health.Value > 0f) return;
+                    if (EntityShouldLive(health)) return;
 
-                    ecb.DestroyEntity(entityInQueryIndex, entity);
+                    KillEntity(deathWriter, entityInQueryIndex, entity);
                 })
-                .WithoutBurst()
+                .WithStoreEntityQueryInField(ref _killQuery)
+                .WithBurst()
                 .Schedule(Dependency);
 
-        _endSimEcbSystem.AddJobHandleForProducer(targetHandle);
+        _eventSystem.AddJobHandleForProducer<DeathEvent>(killHandle);
+        return killHandle;
+    }
 
-        Dependency = targetHandle;
+    private static void KillEntity(
+        NativeEventStream.IndexWriter deathWriter,
+        int entityInQueryIndex,
+        Entity entity
+    )
+    {
+        /* DeathSystem */
+        var deathEvent = new DeathEvent
+        {
+            Entity = entity
+        };
+        deathWriter.BeginForEachIndex(entityInQueryIndex);
+        deathWriter.Write(deathEvent);
+        deathWriter.EndForEachIndex();
+    }
+
+    private static bool EntityShouldLive(Health health)
+    {
+        return health.Value > 0f;
     }
 }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 
 using Game.Enemy;
+using Game.Weapon;
 
 using NUnit.Framework;
 
@@ -43,6 +44,24 @@ public class ConversionTests
         yield return new WaitForFixedUpdate();
 
         IsTrue(_manager.HasComponent<EnemyFighterVisual>(entity));
+    }
+
+    [UnityTest]
+    public IEnumerator When_HasLaserBoltVisualSingletonAuthoring_GetsLaserBoltVisual()
+    {
+        var gameObject = new GameObject();
+        gameObject.AddComponent<LaserBoltVisualSingletonAuthoring>();
+        gameObject.AddComponent<ConvertToEntity>();
+
+
+        GameObjectConversionSettings settings =
+            GameObjectConversionSettings.FromWorld(_world, new BlobAssetStore());
+        Entity entity =
+            GameObjectConversionUtility.ConvertGameObjectHierarchy(gameObject, settings);
+
+        yield return new WaitForFixedUpdate();
+
+        IsTrue(_manager.HasComponent<LaserBoltVisual>(entity));
     }
 }
 }
