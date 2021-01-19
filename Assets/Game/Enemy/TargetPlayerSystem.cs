@@ -4,7 +4,11 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Rendering;
 using Unity.Transforms;
+
+using UnityEngine;
 
 namespace Game.Enemy
 {
@@ -14,12 +18,18 @@ public class TargetPlayerSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem _endSimEcbSystem;
     private Entity _player;
     private EntityQuery _playerQuery;
+    private EntityQuery _targetsPlayerQuery;
 
     protected override void OnCreate()
     {
         _endSimEcbSystem = World.GetExistingSystem<EndSimulationEntityCommandBufferSystem>();
-        _playerQuery = EntityManager.CreateEntityQuery(
-            typeof(PlayerTag), typeof(Translation));
+        _playerQuery = GetEntityQuery(
+            typeof(PlayerTag),
+            typeof(Translation),
+            typeof(Rotation),
+            typeof(RenderMesh));
+        _playerQuery.AddChangedVersionFilter(typeof(Translation));
+        _playerQuery.AddChangedVersionFilter(typeof(Rotation));
     }
 
     protected override void OnUpdate()
@@ -33,7 +43,7 @@ public class TargetPlayerSystem : SystemBase
             _player = players[0];
         }
 
-        float3 playerPos = EntityManager.GetComponentData<Translation>(_player).Value;
+        NativeArray<float3> playerMeshPoints = CalculatePlayerMeshPoints(_player, _targetsPlayerQuery.CalculateEntityCount());
 
         EntityCommandBuffer.ParallelWriter ecb = _endSimEcbSystem.CreateCommandBuffer().AsParallelWriter();
 
@@ -47,20 +57,39 @@ public class TargetPlayerSystem : SystemBase
                     Entity entity,
                     int entityInQueryIndex) =>
                 {
+                    float3 playerPos = playerMeshPoints[entityInQueryIndex % playerMeshPoints.Length];
                     var followTarget = new Target
                     {
                         Entity = player,
                         Position = playerPos,
-                        StopDistanceSq = 10f * 10f
+                        StopDistance = 10f
                     };
                     ecb.AddComponent(entityInQueryIndex, entity, followTarget);
                 })
+                .WithStoreEntityQueryInField(ref _targetsPlayerQuery)
+                .WithDisposeOnCompletion(playerMeshPoints)
                 .WithBurst()
                 .ScheduleParallel(Dependency);
 
         _endSimEcbSystem.AddJobHandleForProducer(targetHandle);
 
         Dependency = targetHandle;
+    }
+
+    private NativeArray<float3> CalculatePlayerMeshPoints(Entity player, int entityCount)
+    {
+        var renderMesh = EntityManager.GetSharedComponentData<RenderMesh>(player);
+
+        Vector3[] vertices = renderMesh.mesh.vertices;
+        var playerMeshPoints =
+            new NativeArray<float3>(vertices.Length, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+
+        for (var i = 0; i < math.min(entityCount, vertices.Length); i++)
+        {
+            playerMeshPoints[i] = vertices[i];
+        }
+
+        return playerMeshPoints;
     }
 }
 }

@@ -24,7 +24,7 @@ public class AccelerateToTargetSystem : SystemBase
                 float distanceToTargetSq = distancesq(target.Position, translation.Value);
                 float3 vectorToTarget = normalizesafe(target.Position - translation.Value);
 
-                if (distanceToTargetSq <= target.StopDistanceSq)
+                if (distanceToTargetSq <= target.StopDistance * target.StopDistance)
                     acceleration.Value = float3.zero;
                 else
                     acceleration.Value = acceleration.Max * vectorToTarget;

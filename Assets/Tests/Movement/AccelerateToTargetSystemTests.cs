@@ -34,7 +34,7 @@ public class AccelerateToTargetSystemTests : SystemTestBase<AccelerateToTargetSy
         m_Manager.SetComponentData(_entity, new Target
         {
             Position = new float3(0f, 0f, stopDistance),
-            StopDistanceSq = stopDistance * stopDistance
+            StopDistance = stopDistance * stopDistance
         });
 
         World.Update();
@@ -55,7 +55,7 @@ public class AccelerateToTargetSystemTests : SystemTestBase<AccelerateToTargetSy
         m_Manager.SetComponentData(_entity, new Target
         {
             Position = new float3(0f, 0f, 100f),
-            StopDistanceSq = stopDistance * stopDistance
+            StopDistance = stopDistance * stopDistance
         });
 
         World.Update();
@@ -76,7 +76,7 @@ public class AccelerateToTargetSystemTests : SystemTestBase<AccelerateToTargetSy
         m_Manager.SetComponentData(_entity, new Target
         {
             Position = new float3(0f, 0f, 100f),
-            StopDistanceSq = stopDistance * stopDistance
+            StopDistance = stopDistance * stopDistance
         });
 
         World.Update();

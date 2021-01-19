@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using Unity.Transforms;
 
 using UnityEngine;
@@ -23,7 +24,14 @@ public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
     {
         base.Setup();
         _player = m_Manager.CreateEntity(
-            typeof(PlayerTag), typeof(Translation));
+            typeof(PlayerTag),
+            typeof(Translation),
+            typeof(Rotation),
+            typeof(RenderMesh));
+        m_Manager.SetSharedComponentData(_player, new RenderMesh
+        {
+            mesh = new Mesh { vertices = new[] { Vector3.zero } }
+        });
         _entity = m_Manager.CreateEntity(
             typeof(TargetsPlayerTag));
     }
@@ -69,7 +77,12 @@ public class TargetPlayerSystemTests : SystemTestBase<TargetPlayerSystem>
         float3 targetPos = m_Manager.GetComponentData<Target>(_entity).Position;
         AreEqual(playerPos, targetPos);
 
-        m_Manager.SetComponentData(_player, new Translation { Value = new float3(10f, 0f, 0f) });
+        var newPos = new float3(10f, 0f, 0f);
+        m_Manager.SetComponentData(_player, new Translation { Value = newPos });
+        m_Manager.SetSharedComponentData(_player, new RenderMesh
+        {
+            mesh = new Mesh { vertices = new[] { (Vector3) newPos } }
+        });
 
         playerPos = m_Manager.GetComponentData<Translation>(_player).Value;
 
