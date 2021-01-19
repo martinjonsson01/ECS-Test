@@ -1,4 +1,5 @@
-﻿using Game.Enemy;
+﻿using BovineLabs.Event.Containers;
+
 using Game.Life;
 
 using NUnit.Framework;
@@ -11,7 +12,7 @@ using static NUnit.Framework.Assert;
 
 namespace Tests.Life
 {
-public class DeathSystemTests : SystemTestBase<DeathSystem>
+public class DeathSystemTests : EventSystemTestBase<DeathSystem, DeathEvent>
 {
     private Entity _entity;
 
@@ -27,51 +28,34 @@ public class DeathSystemTests : SystemTestBase<DeathSystem>
     }
 
     [Test]
-    public void When_EntityHasHealth_EntityStillExists()
+    public void When_EntityHasHealth_DeathEventIsNotCreated()
     {
         World.Update();
 
-        IsTrue(m_Manager.Exists(_entity));
+        NativeEventStream.Reader eventReader = CreateEventReader();
+        That(eventReader.Count(), Is.EqualTo(0));
     }
 
     [Test]
-    public void When_EntityHasZeroHealth_EntityIsRemoved()
+    public void When_EntityHasZeroHealth_DeathEventIsCreated()
     {
         m_Manager.SetComponentData(_entity, new Health { Value = 0f });
 
         World.Update();
 
-        IsFalse(m_Manager.Exists(_entity));
+        NativeEventStream.Reader eventReader = CreateEventReader();
+        That(eventReader.Count(), Is.EqualTo(1));
     }
 
     [Test]
-    public void When_EntityHasNegativeHealth_EntityIsRemoved()
+    public void When_EntityHasNegativeHealth_DeathEventIsCreated()
     {
         m_Manager.SetComponentData(_entity, new Health { Value = -10f });
 
         World.Update();
 
-        IsFalse(m_Manager.Exists(_entity));
-    }
-
-    [Test]
-    public void When_EntityIsRemoved_AllTargetComponentsReferencingItAreAlsoRemoved()
-    {
-        var target = new Target { Entity = _entity };
-        Entity targetingEntity1 = m_Manager.CreateEntity(typeof(Target));
-        m_Manager.SetComponentData(targetingEntity1, target);
-        Entity targetingEntity2 = m_Manager.CreateEntity(typeof(Target));
-        m_Manager.SetComponentData(targetingEntity2, target);
-        Entity targetingEntity3 = m_Manager.CreateEntity(typeof(Target));
-        m_Manager.SetComponentData(targetingEntity3, target);
-        m_Manager.SetComponentData(_entity, new Health { Value = 0f });
-
-        World.Update();
-
-        IsFalse(m_Manager.Exists(_entity));
-        IsFalse(m_Manager.HasComponent<Target>(targetingEntity1));
-        IsFalse(m_Manager.HasComponent<Target>(targetingEntity2));
-        IsFalse(m_Manager.HasComponent<Target>(targetingEntity3));
+        NativeEventStream.Reader eventReader = CreateEventReader();
+        That(eventReader.Count(), Is.EqualTo(1));
     }
 }
 }

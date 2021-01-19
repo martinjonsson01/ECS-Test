@@ -59,7 +59,7 @@ public class ProjectileHitDetectionSystemTests :
     {
         World.GetExistingSystem<ProjectileHitDetectionSystem>().Update();
 
-        NativeEventStream.Reader eventReader = GetEventReader();
+        NativeEventStream.Reader eventReader = CreateEventReader();
         AreEqual(0, eventReader.Count() - 1);
     }
 
@@ -74,7 +74,7 @@ public class ProjectileHitDetectionSystemTests :
 
         World.Update();
 
-        NativeEventStream.Reader stream = GetEventReader();
+        NativeEventStream.Reader stream = CreateEventReader();
         int eventCount = stream.BeginForEachIndex(0);
         AreEqual(1, eventCount);
     }
@@ -90,7 +90,7 @@ public class ProjectileHitDetectionSystemTests :
 
         World.Update();
 
-        NativeEventStream.Reader stream = GetEventReader();
+        NativeEventStream.Reader stream = CreateEventReader();
         stream.BeginForEachIndex(0);
         var eventData = stream.Read<ProjectileHitEvent>();
         AreNotEqual(eventData.ProjectileEntity, eventData.HitEntity);
@@ -107,7 +107,7 @@ public class ProjectileHitDetectionSystemTests :
 
         World.Update();
 
-        NativeEventStream.Reader stream = GetEventReader();
+        NativeEventStream.Reader stream = CreateEventReader();
         stream.BeginForEachIndex(0);
         var eventData = stream.Read<ProjectileHitEvent>();
         float projectileDamage = m_Manager.GetComponentData<Damage>(_projectile).Value;

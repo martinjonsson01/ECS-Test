@@ -56,7 +56,7 @@ public class ProjectileHitDamageSystemTests :
     public void When_ProjectileHitEventExists_TargetTakesSpecifiedDamage()
     {
         float previousHealth = m_Manager.GetComponentData<Health>(_target).Value;
-        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = CreateEventWriter();
         const float damage = 4.5f;
         var hitEvent = new ProjectileHitEvent
         {
@@ -75,7 +75,7 @@ public class ProjectileHitDamageSystemTests :
     [Test]
     public void When_ProjectileHitEventHasProjectile_ProjectileIsDestroyed()
     {
-        NativeEventStream.ThreadWriter writer = EventSystem.CreateEventWriter<ProjectileHitEvent>();
+        NativeEventStream.ThreadWriter writer = CreateEventWriter();
         var hitEvent = new ProjectileHitEvent
         {
             ProjectileEntity = _projectile,

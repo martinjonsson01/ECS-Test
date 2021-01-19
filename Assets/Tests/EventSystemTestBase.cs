@@ -31,7 +31,7 @@ public class EventSystemTestBase<TSystem, TEvent> : SystemTestBase<TSystem>
         return eventSystem;
     }
 
-    protected NativeEventStream.Reader GetEventReader()
+    protected NativeEventStream.Reader CreateEventReader()
     {
         JobHandle getEventReadersHandle = EventSystem.GetEventReaders<TEvent>(
             default, out IReadOnlyList<NativeEventStream.Reader> eventReaders);
@@ -39,6 +39,11 @@ public class EventSystemTestBase<TSystem, TEvent> : SystemTestBase<TSystem>
         EventSystem.AddJobHandleForConsumer<TEvent>(getEventReadersHandle);
         NativeEventStream.Reader eventReader = eventReaders[0];
         return eventReader;
+    }
+
+    protected NativeEventStream.ThreadWriter CreateEventWriter()
+    {
+        return EventSystem.CreateEventWriter<TEvent>();
     }
 
 }
