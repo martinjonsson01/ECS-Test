@@ -1,8 +1,5 @@
-﻿using BovineLabs.Event.Containers;
-
-using Game.Enemy;
+﻿using Game.Enemy;
 using Game.Life;
-using Game.Life.Explosion;
 
 using NUnit.Framework;
 
@@ -14,7 +11,7 @@ using static NUnit.Framework.Assert;
 
 namespace Tests.Life
 {
-public class DeathSystemTests : EventSystemTestBase<DeathSystem, ExplosionEvent>
+public class DeathSystemTests : SystemTestBase<DeathSystem>
 {
     private Entity _entity;
 
@@ -75,19 +72,6 @@ public class DeathSystemTests : EventSystemTestBase<DeathSystem, ExplosionEvent>
         IsFalse(m_Manager.HasComponent<Target>(targetingEntity1));
         IsFalse(m_Manager.HasComponent<Target>(targetingEntity2));
         IsFalse(m_Manager.HasComponent<Target>(targetingEntity3));
-    }
-
-    [Test]
-    public void When_EntityDies_ExplosionEventIsCreated()
-    {
-        m_Manager.AddComponent<ExplodesOnDeath>(_entity);
-        m_Manager.SetComponentData(_entity, new Health { Value = 0f });
-
-        World.Update();
-
-        NativeEventStream.Reader stream = GetEventReader();
-        int eventCount = stream.BeginForEachIndex(0);
-        AreEqual(1, eventCount);
     }
 }
 }
