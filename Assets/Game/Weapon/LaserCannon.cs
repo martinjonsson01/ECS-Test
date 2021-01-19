@@ -6,5 +6,7 @@ public struct LaserCannon : IComponentData
 {
     public float Damage;
     public float Cooldown;
+    public float FiringArc;
+    public float Range;
 }
 }

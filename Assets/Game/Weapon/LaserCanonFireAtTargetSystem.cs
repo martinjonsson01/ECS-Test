@@ -31,10 +31,11 @@ public class LaserCanonFireAtTargetSystem : SystemBase
                     int entityInQueryIndex,
                     in LaserCannon cannon,
                     in Translation translation,
+                    in Rotation rotation,
                     in Target target,
                     in DynamicBuffer<CooldownElement> cooldowns) =>
                 {
-                    if (HasAnyCooldownWithType(cooldowns, CooldownType.Weapon)) return;
+                    if (CannotFireWeapon(cooldowns, rotation, translation, target, cannon)) return;
 
                     AddFireLaserComponentAndAddCooldown(target, translation, cannon, ecb, entityInQueryIndex, entity);
                 })
@@ -44,6 +45,34 @@ public class LaserCanonFireAtTargetSystem : SystemBase
         _endSimEcbSystem.AddJobHandleForProducer(handle);
 
         Dependency = handle;
+    }
+
+    private static bool CannotFireWeapon(
+        DynamicBuffer<CooldownElement> cooldowns,
+        Rotation rotation,
+        Translation translation,
+        Target target,
+        LaserCannon cannon)
+    {
+        return HasAnyCooldownWithType(cooldowns, CooldownType.Weapon) ||
+               !WithinFiringArc(rotation.Value, translation.Value, target.Position, cannon.FiringArc) ||
+               !WithinFiringRange(translation.Value, target.Position, cannon.Range);
+    }
+
+    private static bool WithinFiringRange(float3 position, float3 targetPosition, float range)
+    {
+        return math.distancesq(position, targetPosition) <= range * range;
+    }
+
+    private static bool WithinFiringArc(
+        quaternion rotation,
+        float3 position,
+        float3 targetPosition,
+        float firingArc)
+    {
+        float3 towardsTarget = math.normalizesafe(targetPosition - position);
+        float3 direction = math.mul(rotation, math.forward());
+        return math.acos(math.dot(direction, towardsTarget)) <= firingArc;
     }
 
     private static void AddFireLaserComponentAndAddCooldown(
@@ -77,6 +106,5 @@ public class LaserCanonFireAtTargetSystem : SystemBase
         }
         return false;
     }
-
 }
 }

@@ -39,6 +39,7 @@ public class DeathSystem : SystemBase
         JobHandle killHandle =
             Entities
                 .WithName("Kill_Job")
+                .WithChangeFilter<Health>()
                 .ForEach((
                     Entity entity,
                     int entityInQueryIndex,

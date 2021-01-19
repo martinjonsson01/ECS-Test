@@ -60,6 +60,12 @@ public class SpawnerBehaviour : MonoBehaviour
     [SerializeField] [Tooltip("The cooldown between each attack.")]
     private float cooldown = 0.1f;
 
+    [SerializeField] [Tooltip("The minimum angle at which the fighter must be pointed towards the target to fire.")]
+    private float firingArc = math.PI / 4f;
+
+    [SerializeField] [Tooltip("The maximum distance from the target at which the fighter can fire.")]
+    private float firingRange = 100f;
+
     [SerializeField] [Tooltip("The name of the entities spawned.")]
     private string entityName = "Entity";
 
@@ -90,7 +96,12 @@ public class SpawnerBehaviour : MonoBehaviour
         var componentDataFunctions = new List<Func<IRandom, IComponentData>>
         {
             rand => GetRandomTranslationInRange(rand, transform.position),
-            rand => new LaserCannon { Damage = damage, Cooldown = cooldown },
+            rand => new LaserCannon {
+                Damage = damage,
+                Cooldown = cooldown ,
+                FiringArc = firingArc,
+                Range = firingRange
+            },
             rand => new Health { Value = maxHealth },
             rand => new Velocity { Value = rand.NextFloat3(minInitialVelocity, maxInitialVelocity) },
             rand => new Acceleration { Value = 0f, Max = maxAcceleration }

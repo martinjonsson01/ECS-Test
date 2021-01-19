@@ -423,6 +423,8 @@ MonoBehaviour:
   maxHealth: 10
   damage: 2
   cooldown: 0.1
+  firingArc: 0.7853982
+  firingRange: 200
   entityName: Enemy Fighter
 --- !u!4 &571997086
 Transform:
@@ -11394,6 +11396,8 @@ MonoBehaviour:
   maxHealth: 10
   damage: 2
   cooldown: 1
+  firingArc: 0.7853982
+  firingRange: 200
   entityName: Enemy Fighter
 --- !u!4 &1892479962
 Transform:

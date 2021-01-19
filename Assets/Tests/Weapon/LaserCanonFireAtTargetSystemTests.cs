@@ -25,11 +25,19 @@ public class LaserCanonFireAtTargetSystemTests : SystemTestBase<LaserCanonFireAt
         _entity = m_Manager.CreateEntity(
             typeof(LaserCannon),
             typeof(Translation),
+            typeof(Rotation),
             typeof(Target),
             typeof(CooldownElement));
-        m_Manager.SetComponentData(_entity, new LaserCannon { Damage = 1f, Cooldown = 2f });
+        m_Manager.SetComponentData(_entity, new LaserCannon
+        {
+            Damage = 1f,
+            Cooldown = 2f,
+            FiringArc = math.PI / 4,
+            Range = 900f
+        });
         m_Manager.SetComponentData(_entity, new Translation { Value = _entityPosition });
         m_Manager.AddComponentData(_entity, new Target { Position = _targetPosition });
+        m_Manager.AddComponentData(_entity, new Rotation { Value = quaternion.EulerXYZ(0, math.PI / 2, 0) });
     }
 
     [Test]
@@ -92,6 +100,38 @@ public class LaserCanonFireAtTargetSystemTests : SystemTestBase<LaserCanonFireAt
         World.Update();
 
         IsTrue(m_Manager.HasComponent<FireLaser>(_entity));
+    }
+
+    [Test]
+    public void When_NotPointedAtTarget_FireLaserIsNotCreated()
+    {
+        quaternion rotationAway = quaternion.EulerXYZ(0, -math.PI / 2, 0);
+        m_Manager.SetComponentData(_entity, new Rotation { Value = rotationAway });
+
+        World.Update();
+
+        IsFalse(m_Manager.HasComponent<FireLaser>(_entity));
+    }
+
+    [Test]
+    public void When_FacingSameDirectionAsTarget_ButNotPointedAtTarget_FireLaserIsNotCreated()
+    {
+        quaternion sameRotation = quaternion.EulerXYZ(0, 0, 0);
+        m_Manager.SetComponentData(_entity, new Rotation { Value = sameRotation });
+
+        World.Update();
+
+        IsFalse(m_Manager.HasComponent<FireLaser>(_entity));
+    }
+
+    [Test]
+    public void When_OutOfRange_FireLaserIsNotCreated()
+    {
+        m_Manager.SetComponentData(_entity, new Translation { Value = new float3(-1000f, 0, 0) });
+
+        World.Update();
+
+        IsFalse(m_Manager.HasComponent<FireLaser>(_entity));
     }
 }
 }
