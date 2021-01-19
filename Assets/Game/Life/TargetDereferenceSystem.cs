@@ -26,7 +26,7 @@ public class TargetDereferenceSystem : ConsumeEventSystemBase<DeathEvent>
 
         var killedEntities = new NativeList<Entity>(eventCount, Allocator.TempJob);
 
-        for (var i = 0; i < reader.Count(); i++)
+        for (var i = 0; i < reader.RemainingItemCount; i++)
         {
             var death = reader.Read<DeathEvent>();
             killedEntities.Add(death.Entity);
